@@ -4,14 +4,6 @@ from shutil import copy2, Error, copystat
     
 global ConfigDefault    
 ConfigDefault = {
-    "Values.imdb":                      "1",
-    "Values.storage_dir":               "%USERPROFILE%\\Downloads\\Storage",
-    "Values.levenshtein":               "6",
-    "Values.7zip":                      "auto",
-    "Values.7zip_binary":               "7z.exe",
-    "Values.use_labels":                "1",
-    "Values.label_folders":             "video:%USERPROFILE%\\videos;music:%USERPROFILE%\\music;",
-    "Values.debug":                     "0",
     "Lables.imdb":                      "Use Imbd:",
     "Lables.storage_dir":               "Default storage location",
     "Lables.levenshtein":               "Levenshtein distance (default: 6):",
@@ -19,7 +11,15 @@ ConfigDefault = {
     "Lables.7zip_binary":               "7Zip binary (default: 7z.exe):",
     "Lables.use_labels":                "Use uTorrent lables:",
     "Lables.label_folders":             "Lable folders (separated with ;):",
-    "Lables.debug":                     "Debug"
+    "Lables.debug":                     "Debug",
+    "Values.imdb":                      "1",
+    "Values.storage_dir":               "%USERPROFILE%\\Downloads\\Storage",
+    "Values.levenshtein":               "6",
+    "Values.7zip":                      "auto",
+    "Values.7zip_binary":               "7z.exe",
+    "Values.use_labels":                "1",
+    "Values.label_folders":             "video:%USERPROFILE%\\videos;music:%USERPROFILE%\\music;",
+    "Values.debug":                     "0"
     }
 
 def main(argv):
