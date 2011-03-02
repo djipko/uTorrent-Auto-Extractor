@@ -112,6 +112,7 @@ class ConfUi(QtGui.QWidget):
         self.setLayout(hbox)
         
         self.setWindowTitle('uTorrent Auto Extractor Configuration')
+        self.populateFields()
     
     def createLabelStorageInput(self, label_name=None, label_dir=None):
         sze = len(self.l)
@@ -180,6 +181,5 @@ class ConfUi(QtGui.QWidget):
             
 app = QtGui.QApplication(sys.argv)
 ex = ConfUi()
-ex.populateFields()
 ex.show()
 sys.exit(app.exec_())
