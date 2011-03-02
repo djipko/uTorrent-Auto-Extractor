@@ -38,7 +38,7 @@ def main(argv):
         print "Name is not defined. You can use --name flag to define it. Aborting."
         sys.exit() 
                         
-    if options['imdb_flag']:
+    if options['imdb']:
         output_name = name_oracle(name)
    
     output_folder = -1
@@ -254,7 +254,7 @@ def hook2utorrent():
     else:
 
         u = uTorrent()
-        u.setPath(utd)
+        u.setConfPath(utd)
         
         bin_path = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'autoextractor.exe')
         t = '"{}" --name "%N" --path "%D" --label "%L"'.format(bin_path)
