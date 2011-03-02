@@ -1,6 +1,6 @@
 import configobj, sys, os
 import wx
-from autoextractor import *
+from uconfig import read_config
  
 ########################################################################
 class PreferencesDialog(wx.Dialog):
@@ -30,7 +30,7 @@ class PreferencesDialog(wx.Dialog):
  
         conf_filename = os.path.join(os.path.dirname(sys.argv[0]), 'config.ini')
         self.config = configobj.ConfigObj(conf_filename)
-        labels = self.config["Lables"]
+        labels = self.config["Labels"]
         values = self.config["Values"]
         self.widgetNames = values
         font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.FONTWEIGHT_NORMAL)

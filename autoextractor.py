@@ -1,26 +1,8 @@
-import getopt, sys, subprocess, imdb, re, jellyfish, ConfigParser, os, bencode, configui
-from _winreg import OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, QueryValueEx
+import getopt, sys, subprocess, imdb, re, jellyfish, os, configui
 from shutil import copy2, Error, copystat
-    
-global ConfigDefault    
-ConfigDefault = {
-    "Lables.imdb":                      "Use Imbd:",
-    "Lables.storage_dir":               "Default storage location",
-    "Lables.levenshtein":               "Levenshtein distance (default: 6):",
-    "Lables.7zip":                      "7zip Location (default: auto):",
-    "Lables.7zip_binary":               "7Zip binary (default: 7z.exe):",
-    "Lables.use_labels":                "Use uTorrent lables:",
-    "Lables.label_folders":             "Lable folders (separated with ;):",
-    "Lables.debug":                     "Debug",
-    "Values.imdb":                      "1",
-    "Values.storage_dir":               "%USERPROFILE%\\Downloads\\Storage",
-    "Values.levenshtein":               "6",
-    "Values.7zip":                      "auto",
-    "Values.7zip_binary":               "7z.exe",
-    "Values.use_labels":                "1",
-    "Values.label_folders":             "video:%USERPROFILE%\\videos;music:%USERPROFILE%\\music;",
-    "Values.debug":                     "0"
-    }
+from uconfig import read_config  
+from utorrent import uTorrent
+
 
 def main(argv):
     opt, args = getopt.getopt(argv, "he:da:", ["name=", "label=", "path=", "init", "hook"])
@@ -261,72 +243,7 @@ def name_oracle(name):
         
     return folder
 
-def write_config(config):
-    """
-    given a dictionary with key's of the form 'section.option: value'
-    write() generates a list of unique section names
-    creates sections based that list
-    use config.set to add entries to each section
-    """
-    cp = ConfigParser.ConfigParser()
-    sections = set([k.split('.')[0] for k in config.keys()])
-    map(cp.add_section, sections)
-    for k,v in config.items():
-        s, o = k.split('.')
-        cp.set(s, o, v)
-    cp.write(open(os.path.join(os.path.dirname(sys.argv[0]), 'config.ini'), "w"))
-
-def read_config():
-    options = {}
-    config = ConfigParser.ConfigParser()
-    userprofile = os.environ['USERPROFILE'];
-    conf_filename = os.path.join(os.path.dirname(sys.argv[0]), 'config.ini')
-    
-    if os.path.exists(conf_filename)==False:
-        write_config(ConfigDefault)
-         
-    config.read(conf_filename)  
-    
-    options['use_labels'] = config.getboolean('Values', 'use_labels')
-    options['imdb_flag'] = config.getboolean('Values', 'imdb')
-    options['debug'] = config.getboolean('Values', 'debug')
-    options['sevenzip'] = config.get('Values', '7zip')
-    options['levenshtein'] = config.get('Values', 'levenshtein')
-    options['sevenzip_binary'] = config.get('Values', '7zip_binary')
-    options['storage_dir'] = config.get('Values', 'storage_dir')
-    options['supported_formats'] = '^(.*)\.((zip|rar|7z|gz|bz|tar)|(r[0-9]{1,3})|([0-9]{1,3}))$'
-    options['storage_dir'] = re.sub('\%USERPROFILE\%', userprofile, options['storage_dir'])
-    
-    label_folders = config.get('Values', 'label_folders')
-    options['label_folders'] = re.sub('\%USERPROFILE\%', userprofile, label_folders).split(';')
-      
-    if options['sevenzip'] == 'auto':
-        t = OpenKey(HKEY_CURRENT_USER, r"Software\7-Zip", 0, KEY_ALL_ACCESS)
-        if t == False:
-            print 'Unable to find 7-Zip in registry. Please manualy enter full path in config.ini'
-        options['sevenzip_path'] = QueryValueEx(t, 'Path')[0]
-        if options['sevenzip_path'] == False:
-            print 'Unable to find 7-Zip in registry. Please manualy enter full path in config.ini'
-    else:
-        options['sevenzip_path'] = options['sevenzip']
-    
-    options['full_sevenzip_path'] = os.path.join(options['sevenzip_path'], options['sevenzip_binary'])
-    if os.path.exists(options['full_sevenzip_path'])==False:
-        if options['debug']:
-            print "full 7zip path: ".format(options['full_sevenzip_path'])
-        print "{} can not be found. Please fix errors in config.ini".format(options['full_sevenzip_path'])
-
-    if os.path.exists(options['storage_dir'])==False:
-        print "{} doesn't exist, attempting to make dir".format(options['storage_dir'])
-        os.mkdir(options['storage_dir'])
-        if os.path.exists(options['storage_dir'])==False:
-            print "failed to create {}, please create it manually".format(options['storage_dir'])
-            sys.exit()
-        
-    return options
-
 def hook2utorrent():
-    
     print "Attempting to configure uTorrent..."
     
     utd = os.path.join(os.environ['APPDATA'], 'uTorrent', 'settings.dat');
@@ -335,27 +252,13 @@ def hook2utorrent():
         os.system("PAUSE")
         sys.exit()
     else:
-        
-        utorrent = -1
-        while utorrent == -1:
-            if ''.join(os.popen('TASKLIST').readlines()).find('uTorrent.exe') >= 0:
-                print "uTorrent is running. Please close uTorrent and try again."
-                print
-                os.system('PAUSE')
-            else:
-                utorrent = 1
-                
-        f = open(utd, 'rb')
-        l = f.read()
-        f.close()
-        ut_settings = bencode.bdecode(l)
 
+        u = uTorrent()
+        u.setPath(utd)
+        
         bin_path = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'autoextractor.exe')
-        ut_settings['finish_cmd'] = '"{}" --name "%N" --path "%D" --label "%L"'.format(bin_path)
-        ut_settings = bencode.bencode(ut_settings)
-        f = open(utd, 'wb')
-        f.write(ut_settings)
-        f.close() 
+        t = '"{}" --name "%N" --path "%D" --label "%L"'.format(bin_path)
+        u.setOption('finish_cmd', t)
 
 if __name__ == "__main__":
     global levenshtein, too_much_results, too_little_query, options
