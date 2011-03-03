@@ -142,24 +142,16 @@ class ConfUi(QtGui.QWidget):
         options = uconfig.read_config()
              
         i = 0
-        s = len(self.l)
-        while i<s:
-            if self.l[i] is not None and str(self.l[i].text()) is not '':
-                options['Labels'][str(self.l[i].text())] = str(self.e[i].text())
-            i += 1
+        #s = len(self.l)
+        for i, el in self.l.eunmerate():
+            if el and str(el.text()):
+                options['Labels'][str(el.text())] = str(self.e[i].text())
         
         options['Global']['storage_dir'] = str(self.storageDirEdit.text())
         
-        if self.useImdbCheckbox.isChecked():
-            options['Global']['imdb'] = '1'
-        else:
-            options['Global']['imdb'] = '0'
-        
-        if self.useTorrentLabelsCheckbox.isChecked():
-            options['Global']['use_labels'] = '1'
-        else:
-            options['Global']['use_labels'] = '0'
-            
+        options['Global']['imdb'] = self.useImdbCheckbox.isChecked() and '1' or '0'
+        options['Global']['use_labels'] = self.useTorrentLabelsCheckbox.isChecked() and '1' or '0'
+
         uconfig.write_config(options)
         hook2utorrent()
             

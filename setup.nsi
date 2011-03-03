@@ -58,14 +58,16 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "dist\w9xpopen.exe"
-  File "dist\bin\7z.exe"
-  File "dist\bin\7z.dll"
-  File "dist\bin\7zr.exe"
   File "dist\shared.lib"
   File "dist\readme.txt"
   File "dist\licence.txt"
   File "dist\autoextractor.exe"
   File "dist\configuration.exe"
+  SetOutPath "$INSTDIR\bin"
+  SetOverwrite ifnewer
+  File "dist\bin\7z.exe"
+  File "dist\bin\7z.dll"
+  File "dist\bin\7zr.exe"
   !insertmacro UAC_AsUser_ExecShell '' '$INSTDIR\configuration.exe' '' '' ''
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
