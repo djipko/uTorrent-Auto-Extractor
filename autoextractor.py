@@ -1,4 +1,3 @@
-#TODO: Change conf vars in this file
 import getopt, sys, subprocess, imdb, re, jellyfish, os, configui
 from shutil import copy2, Error, copystat
 from uconfig import read_config  
