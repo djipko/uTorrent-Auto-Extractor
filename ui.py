@@ -20,7 +20,6 @@ class ConfUi(QtGui.QWidget):
         
         useImdbLabel = QtGui.QLabel('Use imdb.com')
         useTorrentLabelsLabel = QtGui.QLabel('Use uTorrent Labels')
-        sevenZipLabel = QtGui.QLabel('7-Zip location:')
         storageLabel = QtGui.QLabel('Storage directory:')
 
         self.useImdbCheckbox = QtGui.QCheckBox()
@@ -28,9 +27,8 @@ class ConfUi(QtGui.QWidget):
 
         self.storageDirEdit = QtGui.QLineEdit()
         storageDirButton = QtGui.QPushButton('Browse...', self)
-        self.inputBox = self.storageDirEdit
         self.connect(storageDirButton, QtCore.SIGNAL('clicked()'), 
-                     self.showDirectoryDialog) 
+                     self.directoryDialogFactory(self.storageDirEdit)) 
   
          
         addLabelBtn = QtGui.QPushButton('add label', self)
@@ -112,21 +110,19 @@ class ConfUi(QtGui.QWidget):
         self.e.append(QtGui.QLineEdit(label_dir))
         self.b.append(QtGui.QPushButton('Browse...', self))
         
-        self.inputBox = self.e[sze]
         self.connect(self.b[sze], QtCore.SIGNAL('clicked()'), 
-                     self.showDirectoryDialog) 
+                     self.directoryDialogFactory(self.e[sze])) 
         
         cnt = int(self.grid.rowCount())
         self.grid.addWidget(self.l[sze], cnt+2, 0)
         self.grid.addWidget(self.e[sze], cnt+2, 1)
         self.grid.addWidget(self.b[sze], cnt+2, 2)
-    
-    def showFileDialog(self):
-        self.inputBox.setText(str(QtGui.QFileDialog.getOpenFileName(self, 'Select file')))
         
-    def showDirectoryDialog(self):
-        self.inputBox.setText(str(QtGui.QFileDialog.getExistingDirectory(self, 'Select directory')))
-        
+    def directoryDialogFactory(self, param):
+        def showDirectoryDialog():
+            param.setText(str(QtGui.QFileDialog.getExistingDirectory(self, 'Select directory')))
+        return showDirectoryDialog       
+ 
     def populateFields(self):
         options = uconfig.read_config()
         

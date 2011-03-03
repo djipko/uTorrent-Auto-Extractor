@@ -19,8 +19,7 @@ def main(argv):
         elif o in ("--init"):
             c=configui.App(False)
             c.MainLoop()
-            sys.exit()
-                     
+            sys.exit()                    
     try:
         label
     except NameError:
