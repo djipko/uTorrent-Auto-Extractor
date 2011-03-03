@@ -1,3 +1,6 @@
+"""
+Soon to be removed, replaced by updated gui
+"""
 import configobj, sys, os
 import wx
 from uconfig import read_config
