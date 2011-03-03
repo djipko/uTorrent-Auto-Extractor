@@ -1,4 +1,4 @@
-uTorrent Auto Extractor
+﻿uTorrent Auto Extractor
 ====================
 
 ### About
@@ -13,4 +13,3 @@ on github issues or on [hazaah.com](http://www.hazaah.com/programming/utorrent-a
 
 1. Tested on Windows 7 and Vista
 2. Tested on uTorrent2+
-3. Requires 7zip – 7-zip.com

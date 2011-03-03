@@ -1,12 +1,16 @@
-import getopt, sys, subprocess, imdb, re, jellyfish, os, configui
+import sys, subprocess, re, os
 from shutil import copy2, Error, copystat
 from uconfig import read_config  
-from utorrent import uTorrent
+from utorrent import uTorrent, MessageBox
+from jellyfish import levenshtein_distance
+from getopt import getopt
+from imdb import IMDb
 
 
 def main(argv):
-    opt, args = getopt.getopt(argv, "he:da:", ["name=", "label=", "path=", "init", "hook"])
+    opt, args = getopt(argv, "he:da:", ["name=", "label=", "path=", "hook", "singlefile="])
     del args
+    singlefile = False
     for o, a in opt:
         if o in ("--name"): #torrent file name
             name = a
@@ -15,11 +19,9 @@ def main(argv):
         elif o in ("--path"):
             path = a
         elif o in ("--hook"):
-            hook2utorrent()
-        elif o in ("--init"):
-            c=configui.App(False)
-            c.MainLoop()
-            sys.exit()                    
+            hook2utorrent()   
+        elif o in ("--singlefile"):
+            singlefile = a                 
     try:
         label
     except NameError:
@@ -40,6 +42,7 @@ def main(argv):
     if options['Global']['imdb']:
         output_name = name_oracle(name)
    
+    output_folder = False
     if options['Global']['use_labels']:
         if label==None or label.strip()=='':
             print "Label not defined. Reverting to use_labels=0"
@@ -49,16 +52,23 @@ def main(argv):
             else:
                 output_folder = os.path.join(options['Global']['storage_dir'], label, output_name);
     
-    if output_folder is None:
+    if output_folder == False:
         output_folder = os.path.join(options['Global']['storage_dir'], output_name);
     
-    sevenzipbin = os.path.join(os.path.dirname(sys.argv[0]), 'bin', '7zr.exe')
+    sevenzipbin = os.path.join(os.path.dirname(sys.argv[0]), 'bin', '7z.exe')
+    if singlefile is not False:
+        path = os.path.join(path, singlefile)
     sevenzip = '"{}" x "{}" -ryo"{}" '.format(sevenzipbin, path, output_folder)
     print
     print sevenzip
     subprocess.call(sevenzip)
-    copy(path, output_folder)
-    if options['Global']['debug']:
+    if singlefile is False:
+        copy(path, output_folder)
+    else:
+        my_re = re.compile('^(.*)\.((zip|rar|7z|gz|bz|tar|arj)|(r[0-9]{1,3})|([0-9]{1,3}))$', re.IGNORECASE|re.UNICODE);
+        if my_re.match(path) is False:
+            copy2(path, output_folder)
+    if options['Global']['debug']==1:
         os.system("PAUSE")
 
 def copy(src, dst):
@@ -119,7 +129,7 @@ def strip_name(name):
 
 
 def search_imdb(name):
-    ia = imdb.IMDb()
+    ia = IMDb()
     imdb_name = split_name(name);
     prev_word = ''
     i = 0
@@ -128,25 +138,25 @@ def search_imdb(name):
     for word in imdb_name:
         prev_word = prev_word + " " + word
         prev_word = prev_word.strip()
-        if options['Global']['debug']:
+        if options['Global']['debug']==1:
             print "Searching for {}".format(prev_word)
             
         s_result = ia.search_movie(prev_word)
                     
         if len(s_result)>0 or (len(prev_word)<=too_little_query and len(s_result)>=too_much_results):
-            if options['Global']['debug']:
+            if options['Global']['debug']==1:
                 print "Starting levenshteincmpr() with '{}' query vs list of {} elements".format(prev_word, len(s_result))
             matches[i] = levenshteincmpr(prev_word, s_result)
             if matches[i]==False:
-                if options['Global']['debug']:
+                if options['Global']['debug']==1:
                     print "Failed to search for {}".format(prev_word)
         else:
-            if options['Global']['debug']:
+            if options['Global']['debug']==1:
                 print ".....query skipped"
         i = i+1
     
     if len(matches)==0:
-        if options['Global']['debug']:
+        if options['Global']['debug']==1:
             print "Not able to search IMBD at this time. Possible internet connection fail or imdb.com unreachable. Aborting."
         return False
      
@@ -158,7 +168,7 @@ def search_imdb(name):
             if len(best_lev_match['title'])<matches[key]['title']:
                 best_lev_match = {'lev':matches[key]['lev'], 'title':matches[key]['title']};
             
-    if options['Global']['debug']:
+    if options['Global']['debug']==1:
         print best_lev_match
     
     if best_lev_match['lev'] < levenshtein:
@@ -172,11 +182,11 @@ def levenshteincmpr(string, list):
     best_lev_match = 999999999;
     fixed_string = strip_name(str(string).lower()).strip()
     for item in list:
-        if options['Global']['debug']:
+        if options['Global']['debug']==1:
             print ".....Literating through {}".format(item) 
         fixed_itemstring = strip_name(str(item).lower()).strip()  
-        levdist = jellyfish.levenshtein_distance(fixed_itemstring, fixed_string)
-        if options['Global']['debug']:
+        levdist = levenshtein_distance(fixed_itemstring, fixed_string)
+        if options['Global']['debug']==1:
             print "..........file <{}> vs imdb <{}> gave {} levenshtein distance".format(fixed_string, fixed_itemstring, levdist)
         if best_lev_match > levdist:
             best_lev_match = levdist
@@ -234,13 +244,12 @@ def name_oracle(name):
         
     return folder
 
-def hook2utorrent():
-    print "Attempting to configure uTorrent..."
-    
+def hook2utorrent():    
     utd = os.path.join(os.environ['APPDATA'], 'uTorrent', 'settings.dat');
     if os.path.exists(utd)==False:
-        print "Unable to load uTorrent settings.dat, please set 'Run Program' manually. Refer to readme.txt to find out how to do that."
-        os.system("PAUSE")
+        text = "Unable to load uTorrent settings.dat, please set 'Run Program' manually.\nRefer to readme.txt to find out how to do that."
+        mb = MessageBox()
+        mb.msg(text)
         sys.exit()
     else:
 
@@ -248,8 +257,9 @@ def hook2utorrent():
         u.setConfPath(utd)
         
         bin_path = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'autoextractor.exe')
-        t = '"{}" --name "%N" --path "%D" --label "%L"'.format(bin_path)
+        t = '"{}" --name "%N" --path "%D" --label "%L" --singlefile "%F"'.format(bin_path)
         u.setOption('finish_cmd', t)
+        u.save()
 
 if __name__ == "__main__":
     global levenshtein, too_much_results, too_little_query, options

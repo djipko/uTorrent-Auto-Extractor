@@ -144,7 +144,7 @@ class ConfUi(QtGui.QWidget):
         i = 0
         s = len(self.l)
         while i<s:
-            if self.l[i] is not None:
+            if self.l[i] is not None and str(self.l[i].text()) is not '':
                 options['Labels'][str(self.l[i].text())] = str(self.e[i].text())
             i += 1
         
@@ -163,8 +163,8 @@ class ConfUi(QtGui.QWidget):
         uconfig.write_config(options)
         hook2utorrent()
             
-            
-app = QtGui.QApplication(sys.argv)
-ex = ConfUi()
-ex.show()
-sys.exit(app.exec_())
+if __name__ == "__main__":     
+    app = QtGui.QApplication(sys.argv)
+    ex = ConfUi()
+    ex.show()
+    sys.exit(app.exec_())

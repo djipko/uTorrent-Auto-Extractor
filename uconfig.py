@@ -3,7 +3,7 @@ Created on Mar 2, 2011
 
 @author: Vladimir Cvetic
 '''
-import ConfigParser, os, sys
+import ConfigParser, os, sys, re
 #from _winreg import OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, QueryValueEx
 
 global ConfigDefault 
@@ -55,6 +55,8 @@ def read_config():
         options[section] = {}
         opts = config.options(section)
         for opt in opts:
-            options[section][opt] = config.get(section, opt)
+            parsed = re.sub('\%USERPROFILE\%', os.environ['USERPROFILE'], config.get(section, opt))
+            #print parsed
+            options[section][opt] = parsed
 
     return options
