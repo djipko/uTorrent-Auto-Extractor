@@ -39,40 +39,32 @@ def main(argv):
         print "Name is not defined. You can use --name flag to define it. Aborting."
         sys.exit() 
                         
-    if options['imdb']:
+    if options['Global']['imdb']:
         output_name = name_oracle(name)
    
-    output_folder = -1
-    if options['use_labels']:
+    if options['Global']['use_labels']:
         if label==None or label.strip()=='':
             print "Label not defined. Reverting to use_labels=0"
-        else:
-            lfolder = -1
-            rgx = re.compile("^"+label+"\:",re.IGNORECASE|re.UNICODE)
-            for lf in options['label_folders']:
-                if rgx.match(lf):
-                    lfolder = re.sub(label+'\:', '', lf)
-                    
-            if os.path.exists(lfolder):
-                output_folder = os.path.join(lfolder, output_name);
+        else:           
+            if options['Labels'][label] is not None and os.path.exists(options['Labels'][label]):    
+                output_folder = os.path.join(options['Labels'][label], output_name);
             else:
-                output_folder = os.path.join(options['storage_dir'], label, output_name);
+                output_folder = os.path.join(options['Global']['storage_dir'], label, output_name);
     
-    if output_folder == -1:
-        output_folder = os.path.join(options['storage_dir'], output_name);
+    if output_folder is None:
+        output_folder = os.path.join(options['Global']['storage_dir'], output_name);
     
-    sevenzip = '"{}" x "{}" -ryo"{}" '.format(options['full_sevenzip_path'], path, output_folder)
+    sevenzipbin = os.path.join(os.path.dirname(sys.argv[0]), 'bin', '7zr.exe')
+    sevenzip = '"{}" x "{}" -ryo"{}" '.format(sevenzipbin, path, output_folder)
     print
     print sevenzip
     subprocess.call(sevenzip)
     copy(path, output_folder)
-    if options['debug']:
+    if options['Global']['debug']:
         os.system("PAUSE")
 
 def copy(src, dst):
-    #ignore = shutil.ignore_patterns('*.rar', '*.7z', '*.zip', '*.r*', '*.0*', '*.gz', '*.tar.gz', '*.tar', '*.bz', '*.tar.bz')
-    #print ignore
-    my_re = re.compile(options['supported_formats'], re.IGNORECASE|re.UNICODE);
+    my_re = re.compile('^(.*)\.((zip|rar|7z|gz|bz|tar|arj)|(r[0-9]{1,3})|([0-9]{1,3}))$', re.IGNORECASE|re.UNICODE);
     ignore = ignore_regex(my_re)
     copytree(src, dst, ignore)
     
@@ -138,25 +130,25 @@ def search_imdb(name):
     for word in imdb_name:
         prev_word = prev_word + " " + word
         prev_word = prev_word.strip()
-        if options['debug']:
+        if options['Global']['debug']:
             print "Searching for {}".format(prev_word)
             
         s_result = ia.search_movie(prev_word)
                     
         if len(s_result)>0 or (len(prev_word)<=too_little_query and len(s_result)>=too_much_results):
-            if options['debug']:
+            if options['Global']['debug']:
                 print "Starting levenshteincmpr() with '{}' query vs list of {} elements".format(prev_word, len(s_result))
             matches[i] = levenshteincmpr(prev_word, s_result)
             if matches[i]==False:
-                if options['debug']:
+                if options['Global']['debug']:
                     print "Failed to search for {}".format(prev_word)
         else:
-            if options['debug']:
+            if options['Global']['debug']:
                 print ".....query skipped"
         i = i+1
     
     if len(matches)==0:
-        if options['debug']:
+        if options['Global']['debug']:
             print "Not able to search IMBD at this time. Possible internet connection fail or imdb.com unreachable. Aborting."
         return False
      
@@ -168,7 +160,7 @@ def search_imdb(name):
             if len(best_lev_match['title'])<matches[key]['title']:
                 best_lev_match = {'lev':matches[key]['lev'], 'title':matches[key]['title']};
             
-    if options['debug']:
+    if options['Global']['debug']:
         print best_lev_match
     
     if best_lev_match['lev'] < levenshtein:
@@ -182,11 +174,11 @@ def levenshteincmpr(string, list):
     best_lev_match = 999999999;
     fixed_string = strip_name(str(string).lower()).strip()
     for item in list:
-        if options['debug']:
+        if options['Global']['debug']:
             print ".....Literating through {}".format(item) 
         fixed_itemstring = strip_name(str(item).lower()).strip()  
         levdist = jellyfish.levenshtein_distance(fixed_itemstring, fixed_string)
-        if options['debug']:
+        if options['Global']['debug']:
             print "..........file <{}> vs imdb <{}> gave {} levenshtein distance".format(fixed_string, fixed_itemstring, levdist)
         if best_lev_match > levdist:
             best_lev_match = levdist
@@ -266,5 +258,5 @@ if __name__ == "__main__":
     too_much_results = 50
     too_little_query = 3
     options = read_config()
-    levenshtein = options['levenshtein']
+    levenshtein = options['Global']['levenshtein']
     main(sys.argv[1:])

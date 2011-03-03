@@ -4,7 +4,7 @@ Created on Mar 2, 2011
 @author: Vladimir Cvetic
 '''
 import ConfigParser, os, sys
-from _winreg import OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, QueryValueEx
+#from _winreg import OpenKey, HKEY_CURRENT_USER, KEY_ALL_ACCESS, QueryValueEx
 
 global ConfigDefault 
 ConfigDefault = {
@@ -12,8 +12,8 @@ ConfigDefault = {
               "storage_dir":  "%USERPROFILE%\\Downloads\\Storage",
               "levenshtein":  "6",
               "use_labels":   "1",
-              "debug":        "0",
-              "7zip":         "-1"},
+              "debug":        "0"
+              },
     
     "Labels":{}
     }
@@ -27,16 +27,7 @@ def write_config(config=None):
     """
     if config is None:
         config = ConfigDefault
-    
-    if config['Global']['7zip'] == '-1':
-        if OpenKey(HKEY_CURRENT_USER, r"Software\7-Zip", 0, KEY_ALL_ACCESS):
-            t = OpenKey(HKEY_CURRENT_USER, r"Software\7-Zip", 0, KEY_ALL_ACCESS) 
-            sevenzip_path = QueryValueEx(t, 'Path')[0]
-            sevenzip = '{}\\7z.exe'.format(sevenzip_path)  
-            config['Global']['7zip'] = sevenzip;
-        else:
-            config['Global']['7zip'] = ''
-    
+
     conf_filename = os.path.join(os.path.dirname(sys.argv[0]), 'config.ini')
     rcp = ConfigParser.ConfigParser()  
     rcp.read(conf_filename) 
@@ -51,8 +42,9 @@ def write_config(config=None):
 
 def read_config():
     options = {}
-    config = ConfigParser.ConfigParser()    
-    conf_filename = os.path.join(os.path.dirname(sys.argv[0]), 'config.ini')
+    config = ConfigParser.ConfigParser()   
+    fullPath = os.path.dirname(sys.argv[0]) 
+    conf_filename = os.path.join(fullPath, 'config.ini')
     
     if os.path.exists(conf_filename)==False:
         write_config(ConfigDefault)
@@ -64,5 +56,5 @@ def read_config():
         opts = config.options(section)
         for opt in opts:
             options[section][opt] = config.get(section, opt)
-  
+
     return options

@@ -25,12 +25,6 @@ class ConfUi(QtGui.QWidget):
 
         self.useImdbCheckbox = QtGui.QCheckBox()
         self.useTorrentLabelsCheckbox = QtGui.QCheckBox()
-        
-        self.sevenZipEdit = QtGui.QLineEdit()
-        sevenZipButton = QtGui.QPushButton('Browse...', self)
-        self.inputBox = self.sevenZipEdit
-        self.connect(sevenZipButton, QtCore.SIGNAL('clicked()'), 
-                     self.showFileDialog)
 
         self.storageDirEdit = QtGui.QLineEdit()
         storageDirButton = QtGui.QPushButton('Browse...', self)
@@ -46,7 +40,9 @@ class ConfUi(QtGui.QWidget):
         saveButton = QtGui.QPushButton('Save and hook to uTorrent', self)
         self.connect(saveButton, QtCore.SIGNAL('clicked()'), 
                      self.save)
+        
         resetButton = QtGui.QPushButton('Reset to default', self)
+        
         quitButton = QtGui.QPushButton('Quit', self)
         self.connect(quitButton, QtCore.SIGNAL('clicked()'), 
                      sys.exit)
@@ -82,10 +78,6 @@ class ConfUi(QtGui.QWidget):
 
         self.grid.addWidget(useTorrentLabelsLabel, 3, 0)
         self.grid.addWidget(self.useTorrentLabelsCheckbox, 3, 1)
-
-        self.grid.addWidget(sevenZipLabel, 4, 0)
-        self.grid.addWidget(self.sevenZipEdit, 4, 1)
-        self.grid.addWidget(sevenZipButton, 4, 2)
         
         self.grid.addWidget(storageGLabel, 5, 0)
 
@@ -142,8 +134,6 @@ class ConfUi(QtGui.QWidget):
             self.createLabelStorageInput(label, options['Labels'][label])
             
         self.storageDirEdit.setText(options['Global']['storage_dir'])
-        
-        self.sevenZipEdit.setText(options['Global']['7zip'])
 
         if int(options['Global']['imdb']) == 1:
             self.useImdbCheckbox.setChecked(True)
@@ -163,7 +153,6 @@ class ConfUi(QtGui.QWidget):
             i += 1
         
         options['Global']['storage_dir'] = str(self.storageDirEdit.text())
-        options['Global']['7zip'] = str(self.sevenZipEdit.text())
         
         if self.useImdbCheckbox.isChecked():
             options['Global']['imdb'] = '1'
