@@ -40,6 +40,8 @@ class ConfUi(QtGui.QWidget):
                      self.save)
         
         resetButton = QtGui.QPushButton('Reset to default', self)
+        self.connect(resetButton, QtCore.SIGNAL('clicked()'), 
+                     self.resetToDefaultWrap)
         
         quitButton = QtGui.QPushButton('Quit', self)
         self.connect(quitButton, QtCore.SIGNAL('clicked()'), 
@@ -123,6 +125,10 @@ class ConfUi(QtGui.QWidget):
             param.setText(str(QtGui.QFileDialog.getExistingDirectory(self, 'Select directory')))
         return showDirectoryDialog       
  
+    def resetToDefaultWrap(self):
+        uconfig.resetToDefault()
+        self.populateFields()
+ 
     def populateFields(self):
         options = uconfig.read_config()
         
@@ -142,11 +148,12 @@ class ConfUi(QtGui.QWidget):
         options = uconfig.read_config()
              
         i = 0
-        #s = len(self.l)
-        for i, el in self.l.eunmerate():
-            if el and str(el.text()):
-                options['Labels'][str(el.text())] = str(self.e[i].text())
-        
+        s = len(self.l)
+        while i<s:
+            if self.l[i] is not None and str(self.l[i].text()) is not '':
+                options['Labels'][str(self.l[i].text())] = str(self.e[i].text())
+            i += 1       
+            
         options['Global']['storage_dir'] = str(self.storageDirEdit.text())
         
         options['Global']['imdb'] = self.useImdbCheckbox.isChecked() and '1' or '0'

@@ -17,6 +17,12 @@ ConfigDefault = {
     
     "Labels":{}
     }
+global conf_filename
+conf_filename = os.path.join(os.path.dirname(sys.argv[0]), 'config.ini')
+
+def resetToDefault():
+    os.remove(conf_filename)
+    write_config()
 
 def write_config(config=None):
     """
@@ -28,7 +34,7 @@ def write_config(config=None):
     if config is None:
         config = ConfigDefault
 
-    conf_filename = os.path.join(os.path.dirname(sys.argv[0]), 'config.ini')
+    
     rcp = ConfigParser.ConfigParser()  
     rcp.read(conf_filename) 
     
@@ -43,8 +49,6 @@ def write_config(config=None):
 def read_config():
     options = {}
     config = ConfigParser.ConfigParser()   
-    fullPath = os.path.dirname(sys.argv[0]) 
-    conf_filename = os.path.join(fullPath, 'config.ini')
     
     if os.path.exists(conf_filename)==False:
         write_config(ConfigDefault)
